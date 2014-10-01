@@ -46,10 +46,11 @@
 
 		var Article = mongoose.model('Article', new Schema({
 			title: String,
-			url: String,
+			url: {type: String, unique: true},
 			text: String,
 			img: String
 		}, {collection: 'articles'}));
+
 
 		async.each(config.ping, function(ping, cb) {
 			jsdom.env({
