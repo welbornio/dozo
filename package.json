@@ -23,6 +23,7 @@
     "mongoose": "^3.8.16",
     "node-phantom": "^0.2.5",
     "phantom": "^0.6.5",
-    "phantomjs": "^1.9.10"
+    "phantomjs": "^1.9.10",
+    "spooky": "^0.2.4"
   }
 }
