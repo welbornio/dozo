@@ -1,5 +1,5 @@
 ;(function() {
-	var phantom = require('phantom'),
+	var phantom = require('node-phantom'),
 		jsdom = require('jsdom'),
 		async = require('async'),
 		mongoose = require('mongoose'),
@@ -57,50 +57,73 @@
 			img: String
 		}, {collection: 'articles'}));
 
-		async.each(config.ping, function(ping, cb) {
 
-			phantom.create(function(ph) {
+		var ping = config.ping[0];
 
-				ph.createPage(function(page) {
+		phantom.create(function(err, ph) {
 
-					page.open(ping.url, function(status) {
+			if (!!err) {
+				console.error('phantom.create error:', err);
+			}
 
-						console.log("page status:", status);
+			console.log('phantom.create success');
 
-						page.includeJs(
-							'https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js',
-							function() {
+			return ph.createPage(function(err, page) {
 
-								page.evaluate(function() {
+				if (!!err) {
+					console.error('phantom.createPage error:', err);
+				}
 
-									var article = null,
-			  						articles = [];
+				console.log('phantom.createpage success');
 
-							  	var rules = ping.rules;
-							  	$(rules.parent).each(function() {
-							  		article = new Article({
-								  		title: eval(rules.title),
-								  		url: eval(rules.url),
-								  		text: eval(rules.text),
-								  		img: eval(rules.img)
-								  	});
-								  	articles.push(article);
+				return page.open(ping.url, function(err, status) {
+
+					if (!!err) {
+						console.error('page.open error', err);
+					}
+
+					console.log("page status:", status);
+
+					page.includeJs('https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js', function(err) {
+
+						if (!!err) {
+							console.error('page.includeJs error:', err)
+						}
+
+						setTimeout(function() {
+
+							page.evaluate(function() {
+
+								var article = null,
+		  						articles = [],
+		  						rules = ping.rules;
+
+						  	$(rules.parent).each(function() {
+						  		article = new Article({
+							  		title: eval(rules.title),
+							  		url: eval(rules.url),
+							  		text: eval(rules.text),
+							  		img: eval(rules.img)
 							  	});
+							  	articles.push(article);
+						  	});
 
-							  	Article.create(articles, function(err) {
-							  		if (!!err) {
-							  			console.error("inserting into articles error:", err);
-							  		}
-							  	});
+						  	Article.create(articles, function(err, success) {
+						  		if (!!err) {
+						  			console.error("inserting into articles error:", err);
+						  		}
 
-								});
+						  		console.log("inserting into articles success:", success);
+						  	});
 
-							}, function() {
+							}, function(err, result) {
 
-								cb();
+								console.log('page.evaluate result:', result);
 								ph.exit();
 
 							});
+
+						}, 5000);
 
 					});
 
@@ -108,16 +131,6 @@
 
 			});
 
-
-		}, function(err) {
-			if (!!err) {
-				console.error("async done callback error:", err);
-				return;
-			}
-			else {
-				console.log("completing scrape...");
-			}
-			mongoose.connection.close();
 		});
 
 	});
