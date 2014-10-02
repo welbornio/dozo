@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html ng-app="dozo">
+	<head>
+		<title>Welcome to Dozo | Home</title>
+	</head>
+	<body ng-controller="homeCtrl">
+
+		<style>
+			.masonry-brick {
+				display:none;
+				margin:1em;
+				max-width:400px;
+			}
+			.masonry-brick.loaded {
+				display:block;
+			}
+		</style>
+
+		<div masonry>
+			<div class="masonry-brick" ng-repeat="article in articles">
+				<a href="{{article.url}}" target="_blank">
+					<img ng-src="{{article.img}}" />
+					<h3 ng-bind="article.title"></h3>
+					<p ng-bind="article.text"></p>
+				</a>
+			</div>
+		</div>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="/bower_components/jquery-bridget/jquery.bridget.js"></script>
+		<script src="/bower_components/get-style-property/get-style-property.js"></script>
+		<script src="/bower_components/get-size/get-size.js"></script>
+		<script src="/bower_components/eventEmitter/EventEmitter.js"></script>
+		<script src="/bower_components/eventie/eventie.js"></script>
+		<script src="/bower_components/doc-ready/doc-ready.js"></script>
+		<script src="/bower_components/matches-selector/matches-selector.js"></script>
+		<script src="/bower_components/outlayer/item.js"></script>
+		<script src="/bower_components/outlayer/outlayer.js"></script>
+		<script src="/bower_components/masonry/masonry.js"></script>
+		<script src="/bower_components/imagesloaded/imagesloaded.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+		<script src="/bower_components/angular-masonry/angular-masonry.js"></script>
+
+		 <script>
+		 	angular.module('dozo', [
+		 		'dozo.home',
+		 		'wu.masonry'
+		 	]);
+
+		 	angular.module('dozo.home', [])
+		 	.controller('homeCtrl', function($scope, $http) {
+		 		$scope.articles = [];
+
+		 		$http.get('/articles')
+		 		.then(function(data) {
+		 			$scope.articles = data.data;
+		 		});
+		 	});
+		 </script>
+	</body>
+</html>

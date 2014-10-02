@@ -4,7 +4,9 @@ var Spooky = require('spooky'),
 	moment = require('./lib/moment'),
 	mongoose = require('mongoose'),
 	Schema = mongoose.Schema,
-	config;
+	config,
+	originalCount,
+	newCount;
 
 config = {
 	ping: [
@@ -51,7 +53,7 @@ config = {
 mongoose.connect('mongodb://localhost/dozo');
 
 mongoose.connection.on('error', function(err) {
-	console.error("connection error:", err);
+	console.error("mongoose connection error:", err);
 	process.exit(1);
 });
 
@@ -62,6 +64,12 @@ var Article = mongoose.model('Article', new Schema({
 	img: String
 }, {collection: 'articles'}));
 
+Article.count({}, function(err, count) {
+	if (!!err) {
+		console.error('count error:', err);
+	}
+	originalCount = count;
+});
 
 async.each(config.ping, function(ping, cb) {
 
@@ -160,7 +168,13 @@ async.each(config.ping, function(ping, cb) {
 		console.error('async done callback error', err);
 	}
 	else {
-		console.log('scrape complete...');
+		Article.count({}, function(err, count) {
+			if (!!err) {
+				console.error('count error:', err);
+			}
+			newCount = count;
+			console.log('scrape complete... inserted '+ (parseInt(newCount) - parseInt(originalCount)) +' articles');
+			mongoose.connection.close();
+		});
 	}
-	mongoose.connection.close();
 });
