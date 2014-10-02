@@ -1,6 +1,7 @@
 var Spooky = require('spooky'),
 	async = require('async'),
 	jsdom = require('jsdom'),
+	moment = require('./lib/moment'),
 	mongoose = require('mongoose'),
 	Schema = mongoose.Schema,
 	config;
@@ -60,7 +61,9 @@ async.each(config.ping, function(ping, cb) {
 		spooky.then(function() {
 			this.wait(5000, function() {
 				this.emit('pingDone', this.evaluate(function() {
-	      	return document.getElementsByTagName('body')[0].innerHTML;
+	      	return {
+	      		html: document.getElementsByTagName('body')[0].innerHTML
+	      	};
 	    	}));
 			});
 		});
@@ -70,10 +73,12 @@ async.each(config.ping, function(ping, cb) {
 			console.error('spooky error:', err, stack);
 		});
 
-		spooky.on('pingDone', function(html) {
-			console.log('pingDone called for '+ping.domain+':', typeof html);
+		spooky.on('pingDone', function(info) {
+
+			console.log('pingDone called:', ping);
+
 			jsdom.env(
-				html,
+				info.html,
 				['https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'],
 				function(err, window) {
 					if (!!err) {
@@ -92,8 +97,28 @@ async.each(config.ping, function(ping, cb) {
 				  		text: eval(rules.text),
 				  		img: eval(rules.img)
 				  	});
-				  	articles.push(article);
+				  	if (
+				  			typeof article.title === 'undefined' ||
+				  			typeof article.url === 'undefined' ||
+				  			typeof article.text === 'undefined' ||
+				  			typeof article.img === 'undefined'
+				  		) {
+
+				  		console.error('error gathering ping data', ping, article, moment.now());
+
+				  	}
+				  	else {
+
+						  articles.push(article);
+
+						}
 				  });
+
+				  if (articles.length === 0) {
+
+				  	console.error('ping contained no eligible articles' ping, moment.now());
+
+				  }
 
 				  Article.create(articles, function(err) {
 			  		if (!!err) {
