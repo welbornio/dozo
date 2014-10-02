@@ -10,7 +10,15 @@ config = {
 	ping: [
 	{
 			url: 'http://www.polygon.com/news',
-			domain: 'polygon',
+			domain: 'polygon-news',
+			tags: [
+				'polygon',
+				'games',
+				'video games',
+				'graphics',
+				'3D',
+				'game development'
+			],
 			rules: {
 				parent: '.block_body',
 				title: "$(this).find('h2').text()",
@@ -21,7 +29,14 @@ config = {
 		},
 		{
 			url: 'http://bloody-disgusting.com/movies/?f=news',
-			domain: 'bloody-disgusting',
+			domain: 'bloody-disgusting-movie-news',
+			tags: [
+				'bloody-disgusting',
+				'bloody disgusting',
+				'movie',
+				'movies',
+				'horror'
+			],
 			rules: {
 				parent: '.archive-list li',
 				title: "$(this).find('h2 > a').text()",
@@ -32,6 +47,13 @@ config = {
 		}
 	]
 };
+
+mongoose.connect('mongodb://localhost/dozo');
+
+mongoose.connection.on('error', function(err) {
+	console.error("connection error:", err);
+	process.exit(1);
+});
 
 var Article = mongoose.model('Article', new Schema({
 	title: String,
@@ -116,7 +138,7 @@ async.each(config.ping, function(ping, cb) {
 
 				  if (articles.length === 0) {
 
-				  	console.error('ping contained no eligible articles' ping, moment.now());
+				  	console.error('ping contained no eligible articles', ping, moment.now());
 
 				  }
 
@@ -133,4 +155,12 @@ async.each(config.ping, function(ping, cb) {
 
 	});
 
+}, function(err) {
+	if (!!err) {
+		console.error('async done callback error', err);
+	}
+	else {
+		console.log('scrape complete...');
+	}
+	mongoose.connection.close();
 });
