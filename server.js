@@ -17,6 +17,19 @@ var Article = mongoose.model('Article', new Schema({
 	img: String
 }, {collection: 'articles'}));
 
+var Ping = mongoose.model('Ping', new Schema({
+	url: {type: String, unique: true},
+	domain: String,
+	tags: [String],
+	rules: {
+		parent: String,
+		title: String,
+		url: String,
+		text: String,
+		img: String
+	}
+}, {collection: 'pings'}));
+
 // Home page
 app.get('/', function(req, res) {
 	res.sendfile('./client/index.html');
@@ -30,6 +43,15 @@ app.get('/articles', function(req, res) {
 		}
     return res.end(JSON.stringify(articles));
 	});
+});
+
+app.get('/admin', function(req, res) {
+	Ping.find({}, function(err, pings) {
+		if (!!err) {
+			console.error('querying pings error:', err);
+		}
+		return res.end(JSON.stringify(pings));
+	})
 });
 
 // Static files

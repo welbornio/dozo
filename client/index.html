@@ -3,26 +3,47 @@
 	<head>
 		<title>Welcome to Dozo | Home</title>
 	</head>
-	<body ng-controller="homeCtrl">
+	<body>
 
-		<style>
-			.masonry-brick {
-				display:none;
-				margin:1em;
-				max-width:400px;
-			}
-			.masonry-brick.loaded {
-				display:block;
-			}
-		</style>
+		<div ng-controller="adminCtrl">
+			<input type="text" placeholder="URL" ng-model="ping.url"/>
+			<input type="text" placeholder="domain" ng-model="ping.domain"/>
+			<textarea placeholder="tags" ng-model="ping.tags"></textarea>
 
-		<div masonry>
-			<div class="masonry-brick" ng-repeat="article in articles">
-				<a href="{{article.url}}" target="_blank">
-					<img ng-src="{{article.img}}" />
-					<h3 ng-bind="article.title"></h3>
-					<p ng-bind="article.text"></p>
-				</a>
+			<label>Rules</label>
+			<input type="text" placeholder="Parent" ng-model="ping.rules.parent"/>
+			<input type="text" placeholder="Title" ng-model="ping.rules.title"/>
+			<input type="text" placeholder="URL" ng-model="ping.rules.url"/>
+			<input type="text" placeholder="Text" ng-model="ping.rules.text"/>
+			<input type="text" placeholder="Img" ng-model="ping.rules.img"/>
+
+			{{ping}}
+
+			<div ng-repeat="ping in pings">
+				{{ ping }}
+			</div>
+		</div>
+
+		<div ng-controller="homeCtrl">
+			<style>
+				.masonry-brick {
+					display:none;
+					margin:1em;
+					max-width:400px;
+				}
+				.masonry-brick.loaded {
+					display:block;
+				}
+			</style>
+
+			<div masonry>
+				<div class="masonry-brick" ng-repeat="article in articles">
+					<a href="{{article.url}}" target="_blank">
+						<img ng-src="{{article.img}}" />
+						<h3 ng-bind="article.title"></h3>
+						<p ng-bind="article.text"></p>
+					</a>
+				</div>
 			</div>
 		</div>
 
@@ -44,6 +65,7 @@
 		 <script>
 		 	angular.module('dozo', [
 		 		'dozo.home',
+		 		'dozo.admin',
 		 		'wu.masonry'
 		 	]);
 
@@ -55,7 +77,20 @@
 		 		.then(function(data) {
 		 			$scope.articles = data.data;
 		 		});
-		 	});
+		 	})
+
+			angular.module('dozo.admin', [])
+			.controller('adminCtrl', function($scope, $http) {
+				$scope.rules = [];
+
+				$scope.ping = {};
+				$scope.ping.rules = {};
+
+				$http.get('/admin')
+				.then(function(data) {
+					$scope.rules = data.data;
+				});
+			});
 		 </script>
 	</body>
 </html>
